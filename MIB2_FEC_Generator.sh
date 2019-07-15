@@ -121,7 +121,7 @@ build_fec_container () {
     # local VCRNHEX=$(printf "$VCRN_O" | cut -c1-24)
     local VINHEX="\x"$(printf "$VIN" | xxd -pu |  sed 's/.\{2\}/&\\x/g' | cut -c1-66)"\x00"
     local EPOCH_HEX="\x"$(printf "%x\n" $EPOCH |  sed 's/.\{2\}/&\\x/g' | cut -c1-14)
-    local FECCOUNTN="\x"$(printf "%02s" $FEC_COUNT)
+    local FECCOUNTN="\x"$(printf "%x" $FEC_COUNT)
         local FECS_NOCSV=$(tr -d ',' <<< $FECS_CSV)
     local FECSHEX="\x"$(printf "$FECS_NOCSV" |  sed 's/.\{2\}/&\\x/g')
     local FECSHEX=${FECSHEX::${#FECSHEX}-2}
