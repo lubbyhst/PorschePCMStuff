@@ -1,0 +1,127 @@
+1. Sprawdzamy wersje MU naszego softu, jeśli nie ma hasła na liście to albo podnosnimy wersje softu do góry do takiego Mu do jakeigo mamy hasło albo wyciągamy jednostkę i odczytujemy hash.
+
+2. Zmieniamy region z dostępem upoważnionym (S20103)
+
+Tuner radiowy FM US->EU
+5F > 07 Kodowanie-> Byte 9 - 22 zmieniamy na 11 zmieniamy ręcznie, lub odznaczamy bite 1, 5, zaznaczamy bite 0, 4
+
+5F > Kodowanie - BYTE 3 COUNTRY NAVIGATION - EU
+		 BYTE 9 BAND SETTINGS FM TUNER – EU_RdW
+		 BYTE 9 BAND SETTINGS AM TUNER – EU_RdW
+
+MIB zmiana regionu:
+5F > 10 Adaptacje - 	COUNTRY CODE FOR MOBILE NETWORK- 0
+			COUNTRY IDENTIFICATION: COUNTRY OF SALE- PL
+			COUNTRY IDENTIFICATION: COUNTRY OF SALE HMI- PL
+			VEHICLE CONFIGURATION: SDS_Region_F: REGION_EU
+			REGIONAL CODES:
+					DVD REGION 2
+					BLUERAY CODE 2
+			Summertime-automatic- EUROPE
+
+A5 > Kodowanie > LCH > 	PRODUCTION REGION- EU
+			COUNTRY VARIANT EUROPE
+
+3. Ustawienia karty sieciowej w laptopie:
+IP: 172.16.250.123
+MASKA: 255.255.0.0
+BRAMKA: 172.16.250.248
+
+4. Uruchamiamy Putty
+
+5. Ustawienia Putty
+IP: 172.16.250.248
+Port: 123
+Connection type: Telnet
+
+6. Logujemy się do jednostki
+Login: root
+Password: wybrać odpowiednie do wersji MU****
+
+7. Zgrywamy eeprom, FEC, RCC na kartę pamięci komendami po kolei
+	A. Montujemy kartę pamięci komendą:
+	mount -uw /net/mmx/fs/sda0/
+
+	B. Kopia eepromu na kartę komendą:
+	/usr/apps/modifyE2P r 00 8000 > /net/mmx/fs/sda0/eeprom.txt
+
+	C. Kopia FEC na kartę pamięci komendą:
+	cp -r /mnt/efs-persist/FEC/FecContainer.fec /net/mmx/fs/sda0/FecContainer.fec
+
+	D. Kopia RCC na kartę pamięci komendami po kolei:
+	cat /net/rcc/dev/fs0 > /net/mmx/fs/sda0/rcc_fs0
+	cat /net/mmx/dev/fs0 > /net/mmx/fs/sda0/mmx_fs0
+
+8. Przerabiamy sobie eeprom np Notatnik, WordPad
+
+9. Wgrywamy każdą linijkę eepromu osobno za pomocą komend
+mount -uw /net/mmx/fs/sda0/
+/usr/apps/modifyE2P w
+spacja po "w"!!!!!!!!!!
+NP:
+/usr/apps/modifyE2P w b0 	30 30 45 32 31 8b 48 9b b5 01 4d 55 2d 48 2d 4c
+/usr/apps/modifyE2P w c0 	4e 2d 45 55 20 20 20 2d 2d 2d 2d 2d 2d 2d 2d 41
+/usr/apps/modifyE2P w d0 	35 38 39 41 30 46 37 35 30 36 36 33 38 04 01 13
+/usr/apps/modifyE2P w e0 	02 02 03 00 ff ff ff ff 15 01 29 00 06 46 22 09
+/usr/apps/modifyE2P w f0 	57 01 75 03 01 00 00 00 00 13 11 00 02 00 0a 00
+
+
+10. Wgrywamy Europejski soft z czerwonego menu jako STANDARD
+
+UWAGA: Jeżeli w aucie znajduje się wysoki soft Amerykański konieczne jest ponowne wgranie softu przez USER DEFINED, zaznaczamy wszystkie sterowniki po koleji oprócz IOC.
+
+11. Ładujemy kontener danych np dla A4 B9/A5 wybieramy "A4_B9_mib2_8w0035039x,035x.zdc" AVAILABLE_LANGUAGE_EU.
+
+12. Restartujemy jednostkę i wybieramy język Polski
+
+----------------------------------------
+Wgrywanie Map
+
+1. Logujemy się do jednostki przez Putty jak wyżej
+Login: root
+Password: wybrać odpowiednie do wersji MU****(teraz mamy inne MU**** więc i hasło inne)
+
+2. Dla bezpieczeństwa zgrać sobie eeprom, FEC, RCC na karte
+
+3. Montujemy kartę pamięci komendą:
+mount -uw /net/mmx/fs/sda0/
+
+4. Kopia eepromu na kartę komendą:
+/usr/apps/modifyE2P r 00 8000 > /net/mmx/fs/sda0/eeprom.txt
+
+5. Kopia FEC na kartę pamięci komendą:
+cp -r /mnt/efs-persist/FEC/FecContainer.fec /net/mmx/fs/sda0/FecContainer.fec
+
+6. Kopia RCC na kartę pamięci komendami po kolei:
+cat /net/rcc/dev/fs0 > /net/mmx/fs/sda0/rcc_fs0
+cat /net/mmx/dev/fs0 > /net/mmx/fs/sda0/mmx_fs0
+
+7. Usunięci pliku FEC z jednostki komendą:
+rm / mnt/efs-persist/FEC/*.fec
+
+8. Restart jednsotki po usunięciu pliku FEC
+PRZEROBIONY FEC WRZUCAMY NA KARTE
+Z KATALOGU SOFTY->CARCKI wybieramy CRACK odpowiedni do softu EU wgranego do auta i kopiujemy na karte
+
+9. Obróbka pliku FSC programem WhatTheFec
+zmianiemy z XXX1XXXX na XXX0XXXX (4 cyfra oznacza region US, EU. 7-8 cyfra oznacza długość licencji na mapę)
+
+
+10. Wgranie obrobionego pliku FEC do jednostki komendami:
+mount -uw /net/mmx/fs/sda0/
+cp -r /net/mmx/fs/sda0/FecContainer.fec /mnt/efs-persist/FEC/FecContainer.fec
+
+11. Wgrać patch do jednostki komendami:
+cd /net/mmx/fs/sda0/
+flashunlock
+flashit -a 540000 -d -v -f ifs-root-sig-patch.ifs
+flashlock
+/usr/apps/mib2_ioc_flash reboot
+
+12. Restart jednsotki po wgraniu patch
+
+13. Sprawdzić czy kody aktywacji są legalne
+
+14. Wgrać mapę
+
+15. Po wgraniu map, uruchamiamy VCP->Procedury

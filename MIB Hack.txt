@@ -1,0 +1,255 @@
+3. How to login RCC/MMX console
+Modyfications can be done with D-Link DUB-E100 HW rev. D1 or lower. Change your network settings:
+Network and Internet -> Change adapter settings -> Local Area Connection Properties -> Properties -> Check and choose "Properties" on: Internet Protocol Version 4 (TCP/IPv4). 
+Then make settings like on picture: Connection with RCC/MMX console can be done with PuTTY program.
+
+4. !!! BACKUP !!!
+For making backup you need to put clean fully-formatted FAT32 to SD1 slot on MMI device.
+
+Before making any change in system you need to make an backup of eeprom, RCC (flash), MMX (flash) from 172.16.250.248:123 console:
+mount -uw /net/mmx/fs/sda0/
+/usr/apps/modifyE2P r 00 8000 > /net/mmx/fs/sda0/eeprom.txt
+cp -r /mnt/efs-persist/FEC/FecContainer.fec /net/mmx/fs/sda0/FecContainer.fec
+cp -r /mnt/efs-persist/SWDL/Variant.txt /net/mmx/fs/sda0/Variant.txt
+cat /net/rcc/dev/fs0 > /net/mmx/fs/sda0/rcc_fs0
+cat /net/mmx/dev/fs0 > /net/mmx/fs/sda0/mmx_fs0
+
+5. System patch, *.FEC edit, disable Component Protections
+When backup is done, copy files to your computer.
+FecContainer.fec file contains licenses for MapCare, Apple CarPlay, Android Auto etc. 
+To extend MapCare you must to edit *.fec code. If your car was designed to USA market, your map code will look as: 0aa100bb -> where "aa" is car model, "bb" is MapCare limited time license, "1" is USA market (need to be changed to "0"), for example:
+0aa000bb.*.fec file can be editted with WhatTheFec.exe program for MIB1: *.fec file can be editted with WhatTheFec.exe program for MIB2:
+
+02x001F -> MY 2016 02
+x0020 -> MY 2017
+
+For Audi:
+14 -> Q1 2015
+18 -> Q1 2016
+1C -> Q1 2017
+1E -> Q3 2017
+20 -> Q1 2018
+24 -> Q1 2019
+28 -> Q1 2020
+2F -> Q4 2021
+
+If you want to add Apple CarPlay/Android Auto feature to your car, you must to add three codes to the *.fec file:
+00060300,
+00060800,
+00060900. Click "+" button in WhatTheFec and add codes one by one.
+
+Patches math only version for which they are!!!
+So if you have MHIG_EU_AU_K1549 firmware installed in unit, you cannot use patch for MHIG_EU_AU_P1048 avoiding MMI unit damage!
+If in patch pack there is no patch matching yours unit firmware you need to update firmware. 
+Prepare card with firmware acording to your car model and navigation generation (MIB1 for MIB1 4GB card or bigger, MIB2 for MIB2 8GB card, MIB2.5 for MIB 2.5 8GB card). 
+Before putting files to card you must fully-format this card to FAT32, then unpack files to the card.
+Also you can put to card firmware folders with patches (_patch and _patch_CP). When firmware update is done (perform this operation from RED MENU with card putted to SD1 slot - like in 3G-series MMI) firsly you need to patch firmware. 
+Leave card with patched files in SD1 slot, login to 172.16.250.248:123 console and put those command to the unit (you can copy direclty to console window by clicking MOUSE RIGHT BUTTON):
+Patched IFS-ROOT.ifs can be installed with those commands: (FEC only):
+
+mount -uw /net/mmx/fs/sda0/
+flashunlock
+flashit -a 540000 -d -v -f /net/mmx/fs/sda0/_patch/ifs-root.ifs
+flashlock
+/usr/apps/mib2_ioc_flash reboot
+
+Component Protection patch
+
+(error in F5 will be exist but system will works normal).
+
+Patched IFS-ROOT.ifs can be installed with those commands: (FEC + CP):
+
+mount -uw /net/mmx/fs/sda0/
+flashunlock
+flashit -a 540000 -d -v -f /net/mmx/fs/sda0/_patch_CP/ifs-root.ifs
+flashlock
+/usr/apps/mib2_ioc_flash reboot
+
+Replace *.fec file can be done with those commands:
+mount -uw /net/mmx/fs/sda0/
+rm /mnt/efs-persist/FEC/*.fec
+cp -r /net/mmx/fs/sda0/FecContainer.fec /mnt/efs-persist/FEC/FecContainer.fec
+
+After replacing *.fec you must restart unit (old MIB: MENU+ KNOB+RIGHT UPPER SOFTKEY, new MIB: NAV/MAP + RADIO + KNOB, other VAG units: put down on hold POWER button for 45 sec.). 
+Patching is ready, go to the next step!!!
+
+6. List of known *.FEC codes
+00030000 AMI (USB Enable)
+00030001 Gracenote
+00040100 Navigation
+00050000 Bluetooth
+00060100 Vehicle Data Interface
+00060200 Infotaiment Control
+00060300 Mirror Link
+00060400 Sport HMI
+00060500 ???
+00060700 ???
+00060800 Apple Carplay
+00060900 Google Automotive Link
+00060A00 ???
+00060B00 ???
+00070100 SDS
+00070200 SDS for Navigation
+00070400 Electronic Driver Voice Amplifier (Elektroniczny wzmacniacz głosu kierowcy)
+021000xx Nav Maps EU
+021100xx Nav Maps NAR
+021200xx ???
+021300xx ???
+021A00xx ???
+021B00xx ???
+021D00xx Nav Maps ROW
+023000xx Nav Maps EU
+023100xx Nav Maps NAR
+023D00xx Nav Maps ROW
+033000xx Nav Maps EU
+033100xx Nav Maps NAR
+033D00xx Nav Maps ROW
+061000xx Nav Maps EU
+061100xx Nav Maps NAR
+061D00xx Nav Maps ROW
+063000xx Nav Maps EU
+063100xx Nav Maps NAR
+063D00xx Nav Maps ROW
+071000xx Nav Maps
+073000xx Nav Maps EU
+073D00xx Nav Maps ROW
+081000xx Nav Maps EU
+081100xx Nav Maps NAR
+081400xx Nav Maps AGCC
+081401xx Nav Maps AGCC, Turkey
+081402xx Nav Maps AGCC, Israel
+081403xx ???
+081500xx Nav Maps South Africa
+081600xx Nav Maps Australia, New Zealand
+081700xx Nav Maps India
+081800xx Nav Maps Mexico
+081801xx Nav Maps Chile
+081900xx Nav Maps Asia/Pacific
+081D00xx Nav Maps ROW
+081D01xx ???
+083000xx Nav Maps EU
+083D00xx Nav Maps ROW
+091000xx Nav Maps EU
+091100xx Nav Maps NAR
+091300xx ???
+091400xx Nav Maps Turkey
+091401xx Nav Maps AGCC, Turkey
+091402xx Nav Maps AGCC, Israel
+091403xx Nav Maps AGCC
+091500xx Nav Maps South Africa
+091600xx Nav Maps Australia, New Zealand
+091700xx Nav Maps India
+091800xx Nav Maps Argentina, Brazil, Mexico
+091801xx Nav Maps Chile
+091900xx Nav Maps Asia/Pacific
+091A00xx ???
+091D00xx Nav Maps ROW
+093000xx Nav Maps EU
+093100xx Nav Maps NAR
+xx093D00 Nav Maps ROW
+
+7. European Map Update
+Before map update tou need to erase MAP PARTITION on HDD.
+Run VCP, connect to F5 module and choose Basic Settings -> HDD_Partition_Format -> Parameter: Navigation DataBase then click "Start!".
+Maps can be downloaded from here(P177 2019/2020). Unpack files to 32GB card fully-formatted to FAT32.
+Map should be updated from "Settings menu -> Update system -> Update from: SD1", not from "RED MENU". Map update will take around 1h.
+
+8. Apple Carplay/AndroidAuto CODING
+If you want to add Apple CarPlay/AndroidAuto feature to your car you need to add to *.FEC file needed codes and make coding with VCP:
+Connect to 5F module, go to "Adaptation", from list choose "Car Configuration" and make changes:
+Google_GAL -> ON
+Apple_DIO -> ON
+Mirror_link -> ON
+Smartphone_interface_for_rhmi -> ON
+In some MMI systems you need to change USB adapter!!!
+
+9. Conversion USA -> EU
+If you need to perform conversion from USA to EU unit firstly you must install Advanced Green Menu. If password for unit is know is good.
+When not you nedd to perform unit update with according firmware from Audi USA pack. Unpack files from Developer menu MIB2.7z (folder engdefs) to SD card fully-formatted to FAT32. 
+Login to 172.16.250.248:23 console and put comands:
+mount -uw /net/mmx/fs/sda0/
+/bin/mount -uw /mnt/app/
+cp -Mqnx -r /net/mmx/fs/sda0/engdefs /mnt/app/eso/hmi/engdefs/
+
+Restart unit, Advanced Green Menu is installed.
+Next step to make changes in units eeprom. Each car model has own eeprom procedure. Put clean fully-formatted SD card to SD1 (you will make backup of edited eeprom to eeprom_US2EU.txt file) and then login to 172.16.250.248:123 console and put comands according to your car model and MMI version:
+MHIG_US_AU_Xxxxx (Audi A3 MIB1)
+/usr/apps/modifyE2P w DF 13
+/usr/apps/modifyE2P w E0 02
+/usr/apps/modifyE2P w 3A0 4D 48 49 47 5F 45 55 5F 41 55 5F 4B 31 35 33 39
+mount -uw /net/mmx/fs/sda0/
+/usr/apps/modifyE2P r 00 8000 > /net/mmx/fs/sda0/eeprom_US2EU.txt
+
+MHI2_US_AU37x_Xxxxx (Audi A3 MIB2)
+/usr/apps/modifyE2P w DF 17
+/usr/apps/modifyE2P w E0 02
+/usr/apps/modifyE2P w 3A0 4D 48 49 32 5F 45 52 5F 41 55 33 37 78 5F 50 34
+/usr/apps/modifyE2P w 3B0 32 30 33
+mount -uw /net/mmx/fs/sda0/
+/usr/apps/modifyE2P r 00 8000 > /net/mmx/fs/sda0/eeprom_US2EU.txt
+
+MHI2_US_AUG22_X2xxx (Audi A4-A5-Q5-Q7 MIB2)
+/usr/apps/modifyE2P w DF 13
+/usr/apps/modifyE2P w E0 02
+/usr/apps/modifyE2P w 3A0 4D 48 49 32 5F 45 52 5F 41 55 47 32 32 5F 50 32
+/usr/apps/modifyE2P w 3B0 31 34 38
+mount -uw /net/mmx/fs/sda0/
+/usr/apps/modifyE2P r 00 8000 > /net/mmx/fs/sda0/eeprom_US2EU.txt
+
+MHI2_US_AUG22_X3xxx (Audi A4-A5-Q5-Q7 MIB2)
+/usr/apps/modifyE2P w DF 13
+/usr/apps/modifyE2P w E0 02
+/usr/apps/modifyE2P w 3A0 4D 48 49 32 5F 45 52 5F 41 55 47 32 32 5F 50 33
+/usr/apps/modifyE2P w 3B0 32 34 31
+mount -uw /net/mmx/fs/sda0/
+/usr/apps/modifyE2P r 00 8000 > /net/mmx/fs/sda0/eeprom_US2EU.txt
+
+MHI2_US_AUG11_Xxxxx (Audi A6-A7-A8 MIB2)
+MHI2_US_AU57x_Xxxxx (Audi A6-A7-A8 MIB2)
+/usr/apps/modifyE2P w DF 13
+/usr/apps/modifyE2P w E0 02
+/usr/apps/modifyE2P w 3A0 4D 48 49 32 5F 45 52 5F 41 55 35 37 78 5F 4B 32
+/usr/apps/modifyE2P w 3B0 35 37 30
+mount -uw /net/mmx/fs/sda0/
+/usr/apps/modifyE2P r 00 8000 > /net/mmx/fs/sda0/eeprom_US2EU.txt
+
+MHI2_US_AU43x_Xxxxx (Audi TT MIB2)
+/usr/apps/modifyE2P w DF 13
+/usr/apps/modifyE2P w E0 02
+/usr/apps/modifyE2P w 3A0 4D 48 49 32 5F 45 52 5F 41 55 34 33 78 5F 50 31
+/usr/apps/modifyE2P w 3B0 30 30 30
+mount -uw /net/mmx/fs/sda0/
+/usr/apps/modifyE2P r 00 8000 > /net/mmx/fs/sda0/eeprom_US2EU.txt
+
+MHI2_US_VWG11_Xxxxx (VW MIB2)
+/usr/apps/modifyE2P w DF 02
+/usr/apps/modifyE2P w E0 02
+/usr/apps/modifyE2P w 3A0 4D 48 49 32 5F 45 52 5F 56 57 47 31 31 5F 50 33
+/usr/apps/modifyE2P w 3B0 33 30 31
+mount -uw /net/mmx/fs/sda0/
+/usr/apps/modifyE2P r 00 8000 > /net/mmx/fs/sda0/eeprom_US2EU.txt
+
+If unit that you need to convert is not on this list please contact!
+If modyfications are done restart unit, wait for system load and open Green Menu. Go to SWDL -> Check: User Defined SWDL and then SWDL -> development -> Check: Ignore Region and Variant:
+
+Now put to SD1 SDCard with EU firmware, open RED MENU, go to Update -> SD1 -> User-defined -> All (uncheck ONLY Bose/Bang&Olufsen or any other external audio system avoiding audio failure).
+Update process can take ~1h.
+When update is ready unit will start without EU languges. 
+Now you must perform parametrization with VCP. Go to Can Procedures -> Apps -> Data Container Loading, check 5F module and load file: 
+A3_MIB_8v0035036.zdc - for Audi A3 8V MIB1,
+A4_B9_mib2_8w0035039x,035x.zdc - for Audi A3-A4-A5-Q5-Q7 MIB2,
+a6pa_MMI_4g1035020,A_F,021,A_F,024,025.zdc - for A6-A7-A8,
+A6FL_MIB_4g1035020,021.zdc - for A6-A7-A8 MIB2,
+In data container and check VISIBLE_LANGUAGES_EU or AVAIBLE_LANGUAGES_EU push Load Data. Restart unit, full EU language list will be present on MENU. 
+
+Radio conversion can be done with VCP on 5F module:
+
+Go to Coding and change to:
+BYTE 3 (BIT0): COUNTRY NAVIGATION – EU
+BYTE 9 (BIT0): BAND SETTINGS FM TUNER – EU_RdW
+BYTE 9 (BIT4): BAND SETTINGS AM TUNER – EU_RdW
+
+Go to Adaptation:
+VEHICLE CONFIGURATION: SDS_Region_F: REGION_EU
+
+When those modyfications are ready now you can go to System patch, *.FEC edit, disable Component Protection and install map.
